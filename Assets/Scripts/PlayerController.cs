@@ -5,7 +5,7 @@ public class PlayerController : MonoBehaviour
 {
     public float Speed;
     private Rigidbody rb;
-    private Transform box;
+    private GameObject box;
     private bool hasJoint;
     // Use this for initialization
     public void Start()
@@ -27,7 +27,7 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.GetComponent<Rigidbody>() != null && collision.gameObject.CompareTag("Box") &&
             !hasJoint)
         {
-            box = collision.gameObject.transform;
+            box = collision.gameObject;
             box.transform.position = transform.forward + new Vector3(transform.position.x, 5.5f, transform.position.z);
             gameObject.AddComponent<FixedJoint>();
             gameObject.GetComponent<FixedJoint>().connectedBody = collision.rigidbody;
@@ -41,17 +41,17 @@ public class PlayerController : MonoBehaviour
         float moveVertical = Input.GetAxis("Vertical");
         float speedRotation = 3;
 
-        if (Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.A)||Input.GetKey(KeyCode.LeftArrow))
         {
             transform.Rotate(Vector3.down*speedRotation);
             if(hasJoint)
-                box.Rotate(Vector3.down*speedRotation);
+                box.transform.Rotate(Vector3.down*speedRotation);
         }
-        if (Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow))
         {
             transform.Rotate(Vector3.up*speedRotation);
             if (hasJoint)
-                box.Rotate(Vector3.up * speedRotation);
+                box.transform.Rotate(Vector3.up * speedRotation);
         }
 
         rb.AddForce(transform.forward*Speed*moveVertical);
@@ -60,7 +60,7 @@ public class PlayerController : MonoBehaviour
     private void MakeAShot()
     {
         Destroy(gameObject.GetComponent<FixedJoint>());
-        box.gameObject.GetComponent<Rigidbody>().velocity = transform.forward*Speed*5;
+        box.gameObject.GetComponent<Rigidbody>().velocity = transform.forward*50;
         box.GetComponent<Rigidbody>().mass = 1;
         box = null;
         hasJoint = false;

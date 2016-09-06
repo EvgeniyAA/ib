@@ -4,29 +4,34 @@ using System.Collections.Generic;
 public class WorldManager : MonoBehaviour {
     private static List<GameObject> _cubes = new List<GameObject>();
     private static List<GameObject> _players = new List<GameObject>();
+    [SerializeField]
+    private GameObject _plane;
     [Header("Prefabs")]
     [SerializeField]
     private GameObject _brick;
     [SerializeField]
     private GameObject _player;
-    [SerializeField]
-    private GameObject _plane;
     [Header("Materials")]
     [SerializeField]
     private Material _myPlayer;
     [SerializeField]
     private Material _enemyPlayer;
+    [Header("Stats")]
+    [SerializeField]
     private int _level;
-
+    [SerializeField]
+    private float _playersSpeed;
+    [SerializeField]
+    private float DistanceForShoot;
     private float minX;
     private float maxX;
-
-    public static List<GameObject> cubes
+    public static bool isNeedRestart;
+    public static List<GameObject> Cubes
     {
         get { return _cubes; }
     }
 
-    public static List<GameObject> players
+    public static List<GameObject> Players
     {
         get
         {
@@ -36,18 +41,27 @@ public class WorldManager : MonoBehaviour {
 
     // Use this for initialization
     private void Start () {
+        Mesh planeMesh = _plane.GetComponent<MeshFilter>().mesh;
+        minX = -planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
+        maxX = planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
         _level = 1;
         RestartLevel();
     }
 
     private void RestartLevel()
     {
+        isNeedRestart = false;
+        for (int i = 0; i < _cubes.Count; i++)
+        {
+            Destroy(_cubes[i]);
+        }
+        for (int i = 0; i < _players.Count; i++)
+        {
+            Destroy(_players[i]);
+        }
         _players.Clear();
         _cubes.Clear();
         AddPlayer("Person");
-        Mesh planeMesh = _plane.GetComponent<MeshFilter>().mesh;
-        minX = -planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
-        maxX = planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
         for (int i = 0; i < _level; i++)
         {
             AddPlayer("AI");
@@ -67,13 +81,13 @@ public class WorldManager : MonoBehaviour {
             if (player.tag == "Person")
             {
                 player.AddComponent<PlayerController>();
-                player.GetComponent<PlayerController>().Speed = 1000;
+                player.GetComponent<PlayerController>().Speed = _playersSpeed;
             }
             else
             {
                 player.AddComponent<PlayerAI>();
-                player.GetComponent<PlayerAI>().Speed = 1000;
-                player.GetComponent<PlayerAI>().Distance = 15;
+                player.GetComponent<PlayerAI>().speed = _playersSpeed;
+                player.GetComponent<PlayerAI>().distance = DistanceForShoot;
             }
         }
     }
@@ -108,13 +122,15 @@ public class WorldManager : MonoBehaviour {
             UpdatePosition(cube);
         foreach (GameObject player in _players)
         {
-            if ((player.tag == "Person") &&IsOutside(player) )
+            if ((player.tag == "Person") && IsOutside(player))
             {
-                _level = 1;
+                isNeedRestart = true;
+                _level--;
                 RestartLevel();
             }
             if (IsAllEnemiesOutisdeBoard())
             {
+                isNeedRestart = true;
                 _level++;
                 RestartLevel();
             }
