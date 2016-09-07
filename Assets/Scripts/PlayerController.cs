@@ -3,7 +3,7 @@ using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
-    public float Speed;
+    public float speed;
     private Rigidbody rb;
     private GameObject box;
     private bool hasJoint;
@@ -25,7 +25,7 @@ public class PlayerController : MonoBehaviour
     public void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.GetComponent<Rigidbody>() != null && collision.gameObject.CompareTag("Box") &&
-            !hasJoint)
+            !collision.gameObject.GetComponent<CubesInformation>().hasOwner)
         {
             box = collision.gameObject;
             box.transform.position = transform.forward + new Vector3(transform.position.x, 5.5f, transform.position.z);
@@ -33,6 +33,8 @@ public class PlayerController : MonoBehaviour
             gameObject.GetComponent<FixedJoint>().connectedBody = collision.rigidbody;
             hasJoint = true;
             box.GetComponent<Rigidbody>().mass = 0.1f;
+            box.GetComponent<CubesInformation>().hasOwner = true;
+            //box.GetComponent<Rigidbody>().isKinematic = true;
         }
     }
 
@@ -54,14 +56,16 @@ public class PlayerController : MonoBehaviour
                 box.transform.Rotate(Vector3.up * speedRotation);
         }
 
-        rb.AddForce(transform.forward*Speed*moveVertical);
+        rb.AddForce(transform.forward*speed*moveVertical);
     }
 
     private void MakeAShot()
     {
         Destroy(gameObject.GetComponent<FixedJoint>());
-        box.gameObject.GetComponent<Rigidbody>().velocity = transform.forward*50;
-        box.GetComponent<Rigidbody>().mass = 1;
+        //box.GetComponent<Rigidbody>().isKinematic = false;
+        box.gameObject.GetComponent<Rigidbody>().velocity = transform.forward*speed/5;
+        box.GetComponent<Rigidbody>().mass = 50;
+        box.GetComponent<CubesInformation>().hasOwner = false;
         box = null;
         hasJoint = false;
     }

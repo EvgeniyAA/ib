@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
+using Assets.Scripts;
 
 public class WorldManager : MonoBehaviour {
     private static List<GameObject> _cubes = new List<GameObject>();
@@ -81,7 +83,7 @@ public class WorldManager : MonoBehaviour {
             if (player.tag == "Person")
             {
                 player.AddComponent<PlayerController>();
-                player.GetComponent<PlayerController>().Speed = _playersSpeed;
+                player.GetComponent<PlayerController>().speed = _playersSpeed;
             }
             else
             {
@@ -89,6 +91,11 @@ public class WorldManager : MonoBehaviour {
                 player.GetComponent<PlayerAI>().speed = _playersSpeed;
                 player.GetComponent<PlayerAI>().distance = DistanceForShoot;
             }
+        }
+        foreach (GameObject cube in _cubes)
+        {
+            cube.AddComponent<CubesInformation>();
+            cube.GetComponent<CubesInformation>().hasOwner = false;
         }
     }
 
@@ -120,7 +127,7 @@ public class WorldManager : MonoBehaviour {
         foreach(GameObject cube in _cubes)
         if (IsOutside(cube))
             UpdatePosition(cube);
-        foreach (GameObject player in _players)
+        foreach (GameObject player in _players.ToList())
         {
             if ((player.tag == "Person") && IsOutside(player))
             {
