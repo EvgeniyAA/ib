@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -14,8 +15,6 @@ namespace Assets.Scripts
         private GameObject _aimedCube;
         private readonly List<GameObject> _cubes = new List<GameObject>();
         private Rigidbody _rb;
-        private bool _hasJoint;
-        private bool _isFound;
         private float _movement;
 
         private bool IsCubeOwned
@@ -74,32 +73,24 @@ namespace Assets.Scripts
 
         private void SearchForCube()
         {
-            _aimedCube = SearchNearestObject(_cubes);
-            _stateType = StateType.RotateToCube;
-        }
-
-        private GameObject SearchNearestObject(List<GameObject> gameObjects)
-        {
-            //gameObjects.Minimum(gameObjects);
-            GameObject nearestObj = gameObjects[0];
-            foreach (GameObject obj in gameObjects)
+            IEnumerable<GameObject> freeCubes =
+                _cubes.Where(gameObject => !gameObject.GetComponent<CubesInformation>().hasOwner);
+            if (freeCubes.Any())
             {
-                if (Vector3.Distance(transform.position, obj.transform.position) < Vector3.Distance(transform.position, nearestObj.transform.position) && !obj.GetComponent<CubesInformation>().hasOwner)
-                {
-                    nearestObj = obj;
-                }
+                _aimedCube = freeCubes.Minimum(gameObject => Vector3.Distance(gameObject.transform.position, transform.position));
+                _stateType = StateType.RotateToCube;
             }
-            return nearestObj;
         }
 
         private void RotateToCube()
         {
             if (!IsCubeOwned)
             {
-                var aimedPos = new Vector3(_aimedCube.transform.position.x - transform.position.x, 0,
-                    _aimedCube.transform.position.z - transform.position.z);
-                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(aimedPos), 3);
-                if (Vector3.Angle(transform.forward, _aimedCube.transform.position - transform.position) <= 2)
+                var aimedPos = new Vector3(_aimedCube.transform.position.x - transform.position.x, 0, _aimedCube.transform.position.z - transform.position.z);
+                transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.LookRotation(aimedPos), 10);
+                var aimedPos2 = new Vector3(transform.position.x, 0, transform.position.z);
+                var cubePos = new Vector3(_aimedCube.transform.position.x, 0, _aimedCube.transform.position.z);
+                if (Vector3.Angle(transform.forward, cubePos - aimedPos2) <= 5)
                     _stateType = StateType.MoveToCube;
             }
             else
@@ -112,6 +103,8 @@ namespace Assets.Scripts
         {
             if (!IsCubeOwned)
             {
+                if (Vector3.Angle(transform.forward, _aimedCube.transform.position - transform.position) > 10&&Vector3.Distance(transform.forward, _aimedCube.transform.position)>10)
+                    _stateType = StateType.RotateToCube;
                 _movement = 1;
                 Move();
             }
@@ -151,8 +144,8 @@ namespace Assets.Scripts
             if (Vector3.Angle(transform.forward, _player.transform.position - transform.position) <= 1f)
             {
                 _stateType = StateType.Nothing;
-                Destroy(gameObject.GetComponent<FixedJoint>());
-                //aimedCube.GetComponent<Rigidbody>().isKinematic = false;
+                Destroy(gameObject.GetComponent<SpringJoint>());
+                //_aimedCube.GetComponent<Rigidbody>().isKinematic = false;
                 _aimedCube.GetComponent<Rigidbody>().velocity = transform.forward*speed/5;
                 _aimedCube.GetComponent<Rigidbody>().mass = 50;
                 _aimedCube.GetComponent<CubesInformation>().hasOwner = false;
@@ -166,16 +159,6 @@ namespace Assets.Scripts
             _rb.AddForce(transform.forward * speed * _movement);
         }
 
-        private IEnumerator WaitAndFindNewCube()
-        {
-            yield return new WaitForSeconds(5);
-            _movement = 0;
-            _aimedCube = null;
-            _isFound = false;
-        }
-
-
-
         private void OnCollisionEnter(Collision collision)
         {
             CubesInformation cubesInformation = collision.gameObject.GetComponent<CubesInformation>();
@@ -185,8 +168,8 @@ namespace Assets.Scripts
             {
                 _stateType = StateType.PickUpCube;
                 collision.gameObject.transform.position = transform.forward + new Vector3(transform.position.x, 5.5f, transform.position.z);
-                gameObject.AddComponent<FixedJoint>();
-                gameObject.GetComponent<FixedJoint>().connectedBody = collision.rigidbody;
+                gameObject.AddComponent<SpringJoint>();
+                gameObject.GetComponent<SpringJoint>().connectedBody = collision.rigidbody;
                 collision.gameObject.GetComponent<Rigidbody>().mass = 0.1f;
                 //collision.gameObject.GetComponent<Rigidbody>().isKinematic = true;
                 transform.GetComponent<Rigidbody>().velocity = Vector3.zero;

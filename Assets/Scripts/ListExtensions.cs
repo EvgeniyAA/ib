@@ -2,18 +2,21 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public static class ListExtensions
 {
-    public static T Minimum<T>(this List<T> list, Func<T, float> selector)
+    public static T Minimum<T>(this IEnumerable<T> list, Func<T, float> selector)
     {
-        T min = list[0];
+        T min = list.First();
+        float minValue = selector(min);
         foreach (T item in list)
         {
-            float value = selector(item);
-            if (selector(item) < selector(min))
+            float newValue = selector(item);
+            if (newValue < minValue)
             {
                 min = item;
+                minValue = newValue;
             }
         }
         return min;

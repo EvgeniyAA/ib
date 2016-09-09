@@ -24,8 +24,8 @@ public class PlayerController : MonoBehaviour
 
     public void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.GetComponent<Rigidbody>() != null && collision.gameObject.CompareTag("Box") &&
-            !collision.gameObject.GetComponent<CubesInformation>().hasOwner)
+        if (collision.gameObject.GetComponent<Rigidbody>() != null && collision.gameObject.CompareTag("Box") //&& collision.gameObject.GetComponent<Rigidbody>().velocity >= Vector3.zero
+            && !collision.gameObject.GetComponent<CubesInformation>().hasOwner)
         {
             box = collision.gameObject;
             box.transform.position = transform.forward + new Vector3(transform.position.x, 5.5f, transform.position.z);

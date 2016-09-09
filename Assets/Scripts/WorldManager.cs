@@ -6,18 +6,22 @@ using Assets.Scripts;
 public class WorldManager : MonoBehaviour {
     private static List<GameObject> _cubes = new List<GameObject>();
     private static List<GameObject> _players = new List<GameObject>();
+
     [SerializeField]
     private GameObject _plane;
+
     [Header("Prefabs")]
     [SerializeField]
     private GameObject _brick;
     [SerializeField]
     private GameObject _player;
+
     [Header("Materials")]
     [SerializeField]
     private Material _myPlayer;
     [SerializeField]
     private Material _enemyPlayer;
+
     [Header("Stats")]
     [SerializeField]
     private int _level;
@@ -25,6 +29,7 @@ public class WorldManager : MonoBehaviour {
     private float _playersSpeed;
     [SerializeField]
     private float DistanceForShoot;
+
     private float minX;
     private float maxX;
     public static bool isNeedRestart;
@@ -42,7 +47,7 @@ public class WorldManager : MonoBehaviour {
     }
 
     // Use this for initialization
-    private void Start () {
+    private void Awake () {
         Mesh planeMesh = _plane.GetComponent<MeshFilter>().mesh;
         minX = -planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
         maxX = planeMesh.bounds.size.x * _plane.transform.localScale.x / 2;
